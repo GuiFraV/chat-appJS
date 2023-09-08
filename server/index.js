@@ -19,7 +19,7 @@ socketIO.on('connection', (socket) => {
     })
 })
 
-application.use(cors());
+app.use(cors());
 
 app.get("/api", (req, res) => {
     res.json({
