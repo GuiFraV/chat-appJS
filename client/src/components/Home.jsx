@@ -76,7 +76,7 @@ const Home = ({ socket }) => {
 		<div>
 			<nav className='navbar'>
 				<Link to='/' className='logo'>
-					Mingle
+					ChatJS
 				</Link>
 				<SignOutButton signOutCallback={() => console.log("Signed out!")}>
 					<button className='signOutBtn'>Sign out</button>
@@ -107,13 +107,13 @@ const Home = ({ socket }) => {
 						<div className='chat__input'>
 							<div className='chat__form'>
 								<button className='createBtn' onClick={writeFunction}>
-									Write message
+									ECRIRE UN MESSAGE
 								</button>
 							</div>
 						</div>
 					</div>
 					<aside className='chat__bar'>
-						<h3>Active users</h3>
+						<h3>Utilisateurs Actifs</h3>
 						<ul>
 							{onlineUsers.map((user) => (
 								<li key={user}>{user}</li>
@@ -125,7 +125,7 @@ const Home = ({ socket }) => {
 				<main className='editor'>
 					<header className='editor__header'>
 						<button className=' editorBtn' onClick={handleSubmit}>
-							SEND MESSAGE
+							ENVOYER UN MESSAGE
 						</button>
 					</header>
 
@@ -134,7 +134,6 @@ const Home = ({ socket }) => {
 						const doc = editorInstance.view.state.doc;
 						const contentJSON = doc.toJSON();
 						console.log("Editor content in JSON:", contentJSON);
-						// Utilisez `contentJSON` pour mettre à jour votre état ou pour d'autres traitements
 						setValue(updateMessage(contentJSON));
 					}} />
 
