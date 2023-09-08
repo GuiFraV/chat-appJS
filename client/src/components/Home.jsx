@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { SignOutButton, useAuth } from "@clerk/clerk-react";
 import { Editor } from "novel";
-// import "novel/styles.css";
 
 const Home = ({ socket }) => {
 	const { isLoaded, userId } = useAuth();
@@ -14,6 +13,7 @@ const Home = ({ socket }) => {
 	const lastMessageRef = useRef(null);
 
 	const handleSubmit = () => {
+		console.log("Sending message:", { value, userId: userId.slice(0, 10) });
 		socket.emit("message", {
 			value,
 			userId: userId.slice(0, 10),
@@ -21,24 +21,46 @@ const Home = ({ socket }) => {
 		setWrite(false);
 	};
 
-	const updateMessage = (array) => {
-		const elements = [];
-		for (let i = 0; i < array.length; i++) {
-			if (array[i].type === "paragraph" || array[i].type === "heading") {
-				elements.push(array[i].content[0].text);
-			}
+	const updateMessage = (contentJSON) => {
+		let messages = [];
+	
+		if (contentJSON && contentJSON.content) {
+			contentJSON.content.forEach(item => {
+				if (item.content) {
+					item.content.forEach(innerItem => {
+						if (innerItem.type === 'text' && innerItem.text) {
+							messages.push(innerItem.text);
+						}
+					});
+				}
+			});
 		}
-		return elements.join("\n");
+	
+		return messages.join("\n");
 	};
 
 	useEffect(() => {
-		socket.on("messageResponse", (data) => {
-			setMessages([...messages, data]);
+		// Définissez les fonctions d'écoute ici
+		const handleMessageResponse = (data) => {
+			setMessages((prevMessages) => [...prevMessages, data]);
 			if (!onlineUsers.includes(data.userId)) {
-				setOnlineUsers([...onlineUsers, data.userId]);
+				setOnlineUsers((prevUsers) => [...prevUsers, data.userId]);
 			}
+		};
+
+		// Ajoutez les écouteurs d'événements
+		socket.on("messageResponse", handleMessageResponse);
+
+		socket.on("messageResponse", (data) => {
+			console.log("Received message:", data);
+			setMessages([...messages, data]);
 		});
-	}, [socket, messages, onlineUsers]);
+
+		// Retournez une fonction de nettoyage qui supprime les écouteurs d'événements
+		return () => {
+			socket.off("messageResponse", handleMessageResponse);
+		};
+	}, [socket, onlineUsers]);
 
 	useEffect(() => {
 		// 👇️ scroll to bottom every time messages change
@@ -108,7 +130,14 @@ const Home = ({ socket }) => {
 					</header>
 
 					<div className='editor__container'>
-						<Editor onUpdate={(e) => setValue(updateMessage(e.content))} />
+					<Editor onUpdate={(editorInstance) => {
+						const doc = editorInstance.view.state.doc;
+						const contentJSON = doc.toJSON();
+						console.log("Editor content in JSON:", contentJSON);
+						// Utilisez `contentJSON` pour mettre à jour votre état ou pour d'autres traitements
+						setValue(updateMessage(contentJSON));
+					}} />
+
 					</div>
 				</main>
 			)}
